@@ -132,81 +132,49 @@ END DE2_115;
 ARCHITECTURE structural OF DE2_115 IS
 
 -- TOP LEVEL COMPONENT
-
-component top_level_SM is
---		port (
---		iReset_n				: in std_logic; 
---		iClk					: in std_logic; 
---		iCnt_en 				: in std_logic;	
---		oQ						: out std_logic_vector(3 downto 0);
---		oY						: out std_logic_vector(1 downto 0)
---		);
-		Port (
-        clk_in : in std_logic; --50MHz clock
-        kp_rows : inout std_logic_vector(4 downto 0); --Rows from keypad
-        rst : in std_logic; --Reset input
-        kp_cols : out std_logic_vector(3 downto 0); --Columns to keypad
-        hex0 : out std_logic_vector(6 downto 0); --Hex0 display
-        hex1 : out std_logic_vector(6 downto 0); --Hex1 display
-        hex2 : out std_logic_vector(6 downto 0); --Hex2 display
-        hex3 : out std_logic_vector(6 downto 0); --Hex3 display
-        hex4 : out std_logic_vector(6 downto 0); --Hex4 display
-        hex5 : out std_logic_vector(6 downto 0); --Hex5 display
-        mode_disp : out std_logic; --LED display for mode (1 is Output, 0 is Programming)
-		  addr_out : out std_logic_vector(19 downto 0); --SRAM Address Output
-		  
-data_out : inout std_logic_vector(15 downto 0);
-
-
-		  write_en : out std_logic; --SRAM Write Enable
-		  output_en : out std_logic --SRAM Output Enable
-    );
-end component top_level_SM;
-	
-
+component top_level is 
+PORT (
+		clk_in : in std_logic; -- 50 mhz clock
+		KEY0 : in std_logic; -- key0
+		KEY1 : in std_logic; -- key1
+		KEY2 : in std_logic; -- key2
+		KEY3 : in std_logic; -- key 3
+		LCD_Data : out std_logic_vector(7 downto 0); -- lcd data out, sent from top level state machine? 
+		LCD_EN : out std_logic; -- lcd data is writing or not (enable writing) 
+		LCD_RS : out std_logic; -- lcd either command ('1') or data ('0')
+		SRAM_DQ : inout std_logic_vector(15 downto 0); -- SRAM data in/out bus
+		SRAM_addr : out std_logic_vector(19 downto 0); -- SRAM addy
+		SRAM_WR_EN : out std_logic; --  sram write enable, only used on INIT
+		SRAM_OE_N : out std_logic -- SRAM output enable, used everywhere else( reading) 
+		
+	);
+end component;
+--  put the component of the top level
 BEGIN
    
 -- INSTANTIATION OF THE TOP LEVEL COMPONENT
-
-Inst_top_level: top_level_SM 
---		port map (
---		iReset_n	=> KEY(0), 
---		iClk		=> CLOCK_50, 
---		iCnt_en 	=> SW(0),	
---		oQ			=> LEDR(3 downto 0),
---		oY			=> LEDG(1 downto 0)
---		);
-port map(
-        clk_in => CLOCK_50, --50MHz clock
-        --kp_rows => "11111", --Rows from keypad, something in GPIO
-		  kp_rows(4) => GPIO(0),
-		  kp_rows(3) => GPIO(2),
-		  kp_rows(2) => GPIO(4),
-		  kp_rows(1) => GPIO(6),
-		  kp_rows(0) => GPIO(8),
-        rst => '0', --Reset input, something in GPIO
-        --kp_cols => open, --Columns to keypad, GPIO
-		  kp_cols(3) => GPIO(16),
-		  kp_cols(2) => GPIO(14),
-		  kp_cols(1) => GPIO(12),
-		  kp_cols(0) => GPIO(10),
-        hex0 => HEX0, --Hex0 display
-        hex1 => HEX1, --Hex1 display
-        hex2 => HEX2,
-		  hex3 => HEX3,
-		  hex4 => HEX4,
-		  hex5 => HEX5,
-        mode_disp => LEDG(1), --LED display for mode (1 is Output, 0 is Programming)
-		  addr_out => SRAM_ADDR,
-		  data_out => SRAM_DQ,
-
-		  write_en => SRAM_WE_N,
-		  output_en => SRAM_OE_N
-    );
-
+Inst_top_level : top_level 
+PORT MAP(
+		clk_in => CLOCK_50, -- 50 mhz clock
+		KEY0 => KEY(0), -- key0
+		KEY1 => KEY(1), -- key1
+		KEY2 => KEY(2), -- key2
+		KEY3 => KEY(3), -- key 3
+		LCD_Data => LCD_DATA, -- lcd data out, sent from top level state machine? 
+		LCD_EN => LCD_EN,-- lcd data is writing or not (enable writing) 
+		LCD_RS => LCD_RS, -- lcd either command ('1') or data ('0')
+		SRAM_DQ => SRAM_DQ, -- SRAM data in/out bus
+		SRAM_addr => SRAM_addr, -- SRAM addy
+		SRAM_WR_EN => SRAM_WE_N, --  sram write enable, only used on INIT
+		SRAM_OE_N => SRAM_OE_N -- SRAM output enable, used everywhere else( reading) 
+		
+	
+	);
 SRAM_CE_N <= '0';  -- enable chip
 SRAM_UB_N <= '0';  -- enable upper byte
 SRAM_LB_N <= '0';  -- enable lower byte
+LCD_BLON <= '1'; -- turns lcd backlight on
+LCD_ON <= '1'; -- turns LCD on, should always be on
 
 
 END structural;
