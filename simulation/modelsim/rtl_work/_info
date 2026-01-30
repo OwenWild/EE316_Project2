@@ -1,0 +1,247 @@
+m255
+K3
+13
+cModel Technology
+Z0 dU:\PWM\simulation\modelsim
+Eclk_enable
+Z1 w1769816603
+Z2 DPx4 ieee 11 numeric_std 0 22 O3PF8EB`?j9=z7KT`fn941
+Z3 DPx4 ieee 15 std_logic_arith 0 22 4`Y?g_lkdn;7UL9IiJck01
+Z4 DPx4 ieee 18 std_logic_unsigned 0 22 RYmj;=TK`k=k>D@Cz`zoB3
+Z5 DPx3 std 6 textio 0 22 5>J:;AW>W0[[dW0I6EN1Q0
+Z6 DPx4 ieee 14 std_logic_1164 0 22 5=aWaoGZSMWIcH0i^f`XF1
+Z7 dU:\PWM\simulation\modelsim
+Z8 8U:/PWM/clk_enable.vhd
+Z9 FU:/PWM/clk_enable.vhd
+l0
+L8
+VWWdmVAi:zUTz^f;2;`imO2
+!s100 G5zQ5?h=_AN:F[j89PXT@1
+Z10 OV;C;10.1d;51
+31
+!i10b 1
+Z11 !s108 1769816990.308000
+Z12 !s90 -reportprogress|300|-93|-work|work|U:/PWM/clk_enable.vhd|
+Z13 !s107 U:/PWM/clk_enable.vhd|
+Z14 o-93 -work work -O0
+Z15 tExplicit 1
+Astructural
+R2
+R3
+R4
+R5
+R6
+DEx4 work 10 clk_enable 0 22 WWdmVAi:zUTz^f;2;`imO2
+l19
+L17
+VbHTgjV@88gJ>P@KHfG_d=1
+!s100 <cNDQK`Fbn5T?eJMZagBJ1
+R10
+31
+!i10b 1
+R11
+R12
+R13
+R14
+R15
+Epwm_comparator
+Z16 w1769810544
+R2
+R3
+R4
+R5
+R6
+R7
+Z17 8U:/PWM/PWM_Comparator.vhd
+Z18 FU:/PWM/PWM_Comparator.vhd
+l0
+L8
+V6n;Em8F[A9_0F>;4S9IQJ1
+R10
+31
+Z19 !s108 1769816989.753000
+Z20 !s90 -reportprogress|300|-93|-work|work|U:/PWM/PWM_Comparator.vhd|
+Z21 !s107 U:/PWM/PWM_Comparator.vhd|
+R14
+R15
+!s100 SZba6kmAEib3WCGWe`9L61
+!i10b 1
+Astructural
+R2
+R3
+R4
+R5
+R6
+DEx4 work 14 pwm_comparator 0 22 6n;Em8F[A9_0F>;4S9IQJ1
+l21
+L19
+VFgRl5C9fi54`Y>0=l8@TF0
+R10
+31
+R19
+R20
+R21
+R14
+R15
+!s100 1UIM[26o3?XW_<=EnlWV33
+!i10b 1
+Epwm_reg
+Z22 w1769809904
+R2
+R3
+R4
+R5
+R6
+R7
+Z23 8U:/PWM/PWM_reg.vhd
+Z24 FU:/PWM/PWM_reg.vhd
+l0
+L8
+V1M8mzDQLSTd5Gm<lH=KUZ3
+R10
+31
+Z25 !s108 1769816989.483000
+Z26 !s90 -reportprogress|300|-93|-work|work|U:/PWM/PWM_reg.vhd|
+Z27 !s107 U:/PWM/PWM_reg.vhd|
+R14
+R15
+!s100 :VX:C?XFM:^`M?n?BMk0n3
+!i10b 1
+Astructural
+R2
+R3
+R4
+R5
+R6
+DEx4 work 7 pwm_reg 0 22 1M8mzDQLSTd5Gm<lH=KUZ3
+l22
+L18
+V8o>M[`T8<DS0Z`K]2ZS^h2
+R10
+31
+R25
+R26
+R27
+R14
+R15
+!s100 6UEl]YE^5J?n;3TR=z2_[0
+!i10b 1
+Epwm_tl
+Z28 w1769816791
+R2
+R3
+R4
+R5
+R6
+R7
+Z29 8U:/PWM/PWM_TL.vhd
+Z30 FU:/PWM/PWM_TL.vhd
+l0
+L8
+V]<G0oF9XV25bC>9kEQf2Q2
+R10
+31
+Z31 !s108 1769816988.925000
+Z32 !s90 -reportprogress|300|-93|-work|work|U:/PWM/PWM_TL.vhd|
+Z33 !s107 U:/PWM/PWM_TL.vhd|
+R14
+R15
+!s100 >Emi`XVN2_<Icd7[o5bU`1
+!i10b 1
+Astructural
+R2
+R3
+R4
+R5
+R6
+DEx4 work 6 pwm_tl 0 22 ]<G0oF9XV25bC>9kEQf2Q2
+l84
+L20
+VUM;@aYkVI0makESEV0GPE0
+R10
+31
+R31
+R32
+R33
+R14
+R15
+!s100 LC`SID^M@INDcZ1;h1AM:2
+!i10b 1
+Ers_latch
+Z34 w1769813089
+R2
+R3
+R4
+R5
+R6
+R7
+Z35 8U:/PWM/RS_latch.vhd
+Z36 FU:/PWM/RS_latch.vhd
+l0
+L8
+V`A^;iNfFM;5mF_PInaklD3
+R10
+31
+Z37 !s108 1769816990.027000
+Z38 !s90 -reportprogress|300|-93|-work|work|U:/PWM/RS_latch.vhd|
+Z39 !s107 U:/PWM/RS_latch.vhd|
+R14
+R15
+!s100 M92g?hlDaoVzom9JBTYE61
+!i10b 1
+Astructural
+R2
+R3
+R4
+R5
+R6
+DEx4 work 8 rs_latch 0 22 `A^;iNfFM;5mF_PInaklD3
+l19
+L17
+VZz?RWaX^oomoJ9dXRm^632
+R10
+31
+R37
+R38
+R39
+R14
+R15
+!s100 kHK=kiznAnkCJQ@Ho0^>L2
+!i10b 1
+Euniv_bin_counter
+Z40 w1769716216
+R2
+R5
+R6
+R7
+Z41 8U:/PWM/univ_bin_counter.vhd
+Z42 FU:/PWM/univ_bin_counter.vhd
+l0
+L10
+V<MAW^;]]OXVDM1mWDj5eC1
+R10
+31
+Z43 !s108 1769816989.204000
+Z44 !s90 -reportprogress|300|-93|-work|work|U:/PWM/univ_bin_counter.vhd|
+Z45 !s107 U:/PWM/univ_bin_counter.vhd|
+R14
+R15
+!s100 PFHRhC?0<1a_QG_LchA:01
+!i10b 1
+Aarch
+R2
+R5
+R6
+DEx4 work 16 univ_bin_counter 0 22 <MAW^;]]OXVDM1mWDj5eC1
+l28
+L22
+VYHET8i]2YNfUG4I:d8F<M3
+R10
+31
+R43
+R44
+R45
+R14
+R15
+!s100 D;`@`o8RFWo4LI4VO44D12
+!i10b 1

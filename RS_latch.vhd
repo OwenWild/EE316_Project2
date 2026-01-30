@@ -23,10 +23,12 @@ begin
 	
 	if rising_edge(iClk) then
 	
-		if R = '0' then
+		if R = '1' then
 			q <= '0';
 		elsif S = '1' then
 			q <= '1';
+		elsif R = '0' and S = '0' then
+			q <= '0';
 		elsif R = '1' and S = '1' then
 			q <= '0';
 		end if;

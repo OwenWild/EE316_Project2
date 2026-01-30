@@ -1,0 +1,185 @@
+# Reading C:/altera/13.0sp1/modelsim_ase/tcl/vsim/pref.tcl 
+# do PWM_run_msim_rtl_vhdl.do 
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Copying C:\altera\13.0sp1\modelsim_ase\win32aloem/../modelsim.ini to modelsim.ini
+# Modifying modelsim.ini
+# ** Warning: Copied C:\altera\13.0sp1\modelsim_ase\win32aloem/../modelsim.ini to modelsim.ini.
+#          Updated modelsim.ini.
+# 
+# vcom -93 -work work {U:/PWM/PWM_TL.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity PWM_TL
+# -- Compiling architecture Structural of PWM_TL
+# vcom -93 -work work {U:/PWM/univ_bin_counter.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity univ_bin_counter
+# -- Compiling architecture arch of univ_bin_counter
+# vcom -93 -work work {U:/PWM/PWM_reg.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity PWM_reg
+# -- Compiling architecture Structural of PWM_reg
+# vcom -93 -work work {U:/PWM/PWM_Comparator.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity PWM_Comparator
+# -- Compiling architecture Structural of PWM_Comparator
+# vcom -93 -work work {U:/PWM/RS_latch.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity RS_latch
+# -- Compiling architecture Structural of RS_latch
+# vcom -93 -work work {U:/PWM/clk_enable.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity clk_enable
+# -- Compiling architecture Structural of clk_enable
+# 
+vcom -reportprogress 300 -work work U:/PWM/simulation/modelsim/PWM_TL_tb.vhd
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Compiling entity PWM_TL_tb
+# -- Compiling architecture Behavorial of PWM_TL_tb
+vsim +altera -do PWM_run_msim_rtl_vhdl.do -l msim_transcript -gui rtl_work.pwm_tl_tb
+# vsim +altera -do PWM_run_msim_rtl_vhdl.do -l msim_transcript -gui rtl_work.pwm_tl_tb 
+# Loading std.standard
+# Loading std.textio(body)
+# Loading ieee.std_logic_1164(body)
+# Loading rtl_work.pwm_tl_tb(behavorial)
+# Loading ieee.std_logic_arith(body)
+# Loading ieee.std_logic_unsigned(body)
+# Loading ieee.numeric_std(body)
+# Loading rtl_work.pwm_tl(structural)
+# Loading rtl_work.clk_enable(structural)
+# Loading rtl_work.univ_bin_counter(arch)
+# Loading rtl_work.pwm_reg(structural)
+# Loading rtl_work.pwm_comparator(structural)
+# Loading rtl_work.rs_latch(structural)
+# do PWM_run_msim_rtl_vhdl.do 
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Modifying modelsim.ini
+# 
+# vcom -93 -work work {U:/PWM/PWM_TL.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity PWM_TL
+# -- Compiling architecture Structural of PWM_TL
+# vcom -93 -work work {U:/PWM/univ_bin_counter.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity univ_bin_counter
+# -- Compiling architecture arch of univ_bin_counter
+# vcom -93 -work work {U:/PWM/PWM_reg.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity PWM_reg
+# -- Compiling architecture Structural of PWM_reg
+# vcom -93 -work work {U:/PWM/PWM_Comparator.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity PWM_Comparator
+# -- Compiling architecture Structural of PWM_Comparator
+# vcom -93 -work work {U:/PWM/RS_latch.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity RS_latch
+# -- Compiling architecture Structural of RS_latch
+# vcom -93 -work work {U:/PWM/clk_enable.vhd}
+# Model Technology ModelSim ALTERA vcom 10.1d Compiler 2012.11 Nov  2 2012
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package std_logic_arith
+# -- Loading package STD_LOGIC_UNSIGNED
+# -- Loading package NUMERIC_STD
+# -- Compiling entity clk_enable
+# -- Compiling architecture Structural of clk_enable
+# 
+do U:/PWM/simulation/modelsim/wave.do
+# ** Error: (vish-4014) No objects found matching '/pwm_tl_tb/load'.
+# Executing ONERROR command at macro U:\PWM\simulation\modelsim\wave.do line 5
+add wave -position 3  sim:/pwm_tl_tb/Richie
+add wave -position 1  sim:/pwm_tl_tb/clock_en
+add wave -position 6  sim:/pwm_tl_tb/DUT/Max_Load
+add wave -position 6  sim:/pwm_tl_tb/DUT/en_clk
+add wave -position 6  sim:/pwm_tl_tb/DUT/clk_en
+add wave -position 6  sim:/pwm_tl_tb/DUT/iClk_en
+run
+# ** Warning: NUMERIC_STD."=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 0  Instance: /pwm_tl_tb/DUT/inst_PWM_cnt
+# ** Warning: NUMERIC_STD."=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 0  Instance: /pwm_tl_tb/DUT/inst_PWM_cnt
+# ** Warning: NUMERIC_STD."=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 0  Instance: /pwm_tl_tb/DUT/inst_PWM_cnt
+# ** Warning: NUMERIC_STD."=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 0  Instance: /pwm_tl_tb/DUT/inst_PWM_cnt
+add wave -position 6  sim:/pwm_tl_tb/DUT/inst_PWM_clken/Enable
+add wave -position 6  sim:/pwm_tl_tb/DUT/inst_PWM_clken/clk_en
+add wave -position 6  sim:/pwm_tl_tb/DUT/inst_PWM_clken/clk_cnt
+run
+run
+run
+write format wave -window .main_pane.wave.interior.cs.body.pw.wf U:/PWM/simulation/modelsim/wave.do

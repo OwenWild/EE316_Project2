@@ -6,11 +6,12 @@ USE ieee.std_logic_unsigned.all;
 USE ieee.Numeric_std.all;
 	
 entity PWM_reg is
+	generic(N: integer := 8); 
 	port(
 		iClk					: in std_logic; 
-		X                 : in std_logic_vector(7 downto 0);
+		X                 : in std_logic_vector(N-1 downto 0);
 		Load  				: in std_logic;
-		num               : out std_logic_vector(7 downto 0) --num is y from Fig.11
+		num               : out std_logic_vector(N-1 downto 0) --num is y from Fig.11
 	);
 end PWM_reg;
 
