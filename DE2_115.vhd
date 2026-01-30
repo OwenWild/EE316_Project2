@@ -175,7 +175,7 @@ SRAM_UB_N <= '0';  -- enable upper byte
 SRAM_LB_N <= '0';  -- enable lower byte
 LCD_BLON <= '1'; -- turns lcd backlight on
 LCD_ON <= '1'; -- turns LCD on, should always be on
-
+LCD_RW <= '0';-- LCD always writes, never need to read from the LCD
 
 END structural;
 

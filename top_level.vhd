@@ -77,10 +77,28 @@ COMPONENT Statemachine is
 	
 END component;
 
+COMPONENT LCD_Controller is  
+	PORT(
+		clk_in : in std_logic; -- 50mhz clock
+		mode : in std_logic_vector(2 downto 0);
+		LCD_EN : out std_logic;
+		LCD_RS : out std_logic; -- LCD command or data
+		LCD_Data : out std_logic_vector(7 downto 0)
+		);
+end component;
+
 
 begin 
 --- INSTANTIATIONS GO HERE
 -- INSTANTIATE i2C master, figure out where all ports connect, going to need logic
+INST_LCD_CONTROLLER : LCD_Controller
+	PORT MAP (
+		clk_in => clk_in,
+		mode => mode,
+		LCD_EN => LCD_EN,
+		LCD_RS => LCD_RS,
+		LCD_Data => LCD_Data
+	);
 INST_BTN_DEBOUNCE_Key0  : Btn_Debounce_Toggle
 	PORT MAP(
 		BTN_I => not KEY0,
@@ -94,7 +112,7 @@ INST_BTN_DEBOUNCE_Key1  : Btn_Debounce_Toggle
 	PORT MAP(
 		BTN_I => not KEY1,
 		CLK => clk_in,
-		BTN_O => KEY0_deb,
+		BTN_O => KEY1_deb,
 		TOGGLE_O => open,
 		PULSE_O => open
 
@@ -103,7 +121,7 @@ INST_BTN_DEBOUNCE_Key2  : Btn_Debounce_Toggle
 	PORT MAP(
 		BTN_I => not KEY2,
 		CLK => clk_in,
-		BTN_O => KEY0_deb,
+		BTN_O => KEY2_deb,
 		TOGGLE_O => open,
 		PULSE_O => open
 
@@ -112,7 +130,7 @@ INST_BTN_DEBOUNCE_Key3  : Btn_Debounce_Toggle
 	PORT MAP(
 		BTN_I => not KEY3,
 		CLK => clk_in,
-		BTN_O => KEY0_deb,
+		BTN_O => KEY3_deb,
 		TOGGLE_O => open,
 		PULSE_O => open
 
@@ -128,16 +146,19 @@ INST_Statemachine : Statemachine
 		KEY3 => KEY3_deb,
 		mode => mode
 	);
-----
-process(clk_in)
-	if (rising_edge(clk_in)) then
-		
-		
-		
-		
-		
-	end if;
-end process;	
+-----
+
+
+--process(clk_in)
+--begin
+--	if (rising_edge(clk_in)) then
+--		
+--		
+--		
+--		
+--		
+--	end if;
+--end process;	
 
 	
 
