@@ -20,7 +20,7 @@ architecture arch of Statemachine is
 -- signals go here: 
 type state_type is (INIT, TEST, PAUSE, PWM1, PWM2, PWM3);
 signal TLS : state_type := INIT;
-signal INIT_Del_Cnt : integer range 0 to cnt_max;-- for init delay counter signal
+signal INIT_Del_Cnt : integer range 0 to cnt_max := 0;-- for init delay counter signal
 -- Component binary counter here
 
 
@@ -41,9 +41,11 @@ begin
 					INIT_Del_cnt <= 0; -- resets delay counter
 					TLS <= TEST; -- goes into test mode
 					
-				else 
+				elsif (INIT_Del_Cnt = cnt_max) then INIT_Del_cnt <= INIT_Del_cnt; TLS <= INIT;
+				else
 					INIT_Del_cnt <= INIT_Del_cnt + 1;
 					TLS <= INIT;
+					
 				end if;
 			
 			when TEST =>
@@ -52,6 +54,8 @@ begin
 					TLS <= PAUSE;  -- goes into pause mode
 				elsif (KEY2 = '1') then 
 					TLS <= PWM1; -- goes into pwm1 mode, 60hz
+				elsif (KEY0 = '1') then 
+					TLS <= INIT;
 				else
 					TLS <= TEST;
 				end if;
@@ -60,6 +64,10 @@ begin
 				mode <= "010";
 				if(KEY1 = '1') then 
 					TLS <= TEST; 
+					elsif (KEY0 = '1') then 
+					TLS <= INIT;
+					else
+					TLS <= PAUSE;
 				end if;
 				
 				
@@ -69,6 +77,8 @@ begin
 					TLS <= PWM2;
 				elsif(KEY2 = '1') then 
 					TLS <= TEST;
+					elsif (KEY0 = '1') then 
+					TLS <= INIT;
 				else 
 					TLS <= PWM1;
 				end if;
@@ -78,6 +88,8 @@ begin
 					TLS <= PWM3;
 				elsif(KEY2 = '1') then 
 					TLS <= TEST;
+					elsif (KEY0 = '1') then 
+					TLS <= INIT;
 				else 
 					TLS <= PWM2;
 				end if;
@@ -87,11 +99,12 @@ begin
 					TLS <= PWM1;
 				elsif(KEY2 = '1') then 
 					TLS <= TEST;
+					elsif (KEY0 = '1') then 
+					TLS <= INIT;
 				else 
 					TLS <= PWM3;
 				end if;
-			when others => 
-				TLS <= INIT;
+			
 				
 			end case;
 	end if;
