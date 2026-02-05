@@ -35,7 +35,7 @@ ENTITY DE2_115 IS
 -- 			SDRAM Interface		      
       DRAM_DQ     : INOUT STD_LOGIC_VECTOR(31 DOWNTO 0);	-- SDRAM Data bus 32 Bits
       DRAM_ADDR   : OUT STD_LOGIC_VECTOR(12 DOWNTO 0);		-- SDRAM Address bus 13 Bits
-	  DRAM_DQM    : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);	    -- SDRAM DQM Mask
+	   DRAM_DQM    : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);	    -- SDRAM DQM Mask
       DRAM_WE_N   : OUT STD_LOGIC;							-- SDRAM Write Enable
       DRAM_CAS_N  : OUT STD_LOGIC;							-- SDRAM Column Address Strobe
       DRAM_RAS_N  : OUT STD_LOGIC;							-- SDRAM Row Address Strobe
@@ -130,7 +130,7 @@ ENTITY DE2_115 IS
 END DE2_115;
 
 ARCHITECTURE structural OF DE2_115 IS
-
+signal LCD_DATA_O : STD_LOGIC_VECTOR(7 DOWNTO 0);
 -- TOP LEVEL COMPONENT
 component top_level is 
 PORT (
@@ -145,7 +145,11 @@ PORT (
 		SRAM_DQ : inout std_logic_vector(15 downto 0); -- SRAM data in/out bus
 		SRAM_addr : out std_logic_vector(19 downto 0); -- SRAM addy
 		SRAM_WR_EN : out std_logic; --  sram write enable, only used on INIT
-		SRAM_OE_N : out std_logic -- SRAM output enable, used everywhere else( reading) 
+		SRAM_OE_N : out std_logic; -- SRAM output enable, used everywhere else( reading) 
+		SRAM_CE_N : out std_logic;
+		SRAM_UB_N : out std_logic;
+		SRAM_LB_N : out std_logic;
+		PWM_out : out std_logic
 		
 	);
 end component;
@@ -156,27 +160,30 @@ BEGIN
 Inst_top_level : top_level 
 PORT MAP(
 		clk_in => CLOCK_50, -- 50 mhz clock
-		KEY0 => KEY(0), -- key0
-		KEY1 => KEY(1), -- key1
-		KEY2 => KEY(2), -- key2
-		KEY3 => KEY(3), -- key 3
-		LCD_Data => LCD_DATA, -- lcd data out, sent from top level state machine? 
-		LCD_EN => LCD_EN,-- lcd data is writing or not (enable writing) 
-		LCD_RS => LCD_RS, -- lcd either command ('1') or data ('0')
-		SRAM_DQ => SRAM_DQ, -- SRAM data in/out bus
-		SRAM_addr => SRAM_addr, -- SRAM addy
+		KEY0       => KEY(0), -- key0
+		KEY1       => KEY(1), -- key1
+		KEY2       => KEY(2), -- key2
+		KEY3       => KEY(3), -- key 3
+		LCD_Data   => LCD_DATA_O, -- lcd data out, sent from top level state machine? 
+		LCD_EN     => LCD_EN,-- lcd data is writing or not (enable writing) 
+		LCD_RS     => LCD_RS, -- lcd either command ('1') or data ('0')
+		SRAM_DQ    => SRAM_DQ, -- SRAM data in/out bus
+		SRAM_addr  => SRAM_addr, -- SRAM addy
 		SRAM_WR_EN => SRAM_WE_N, --  sram write enable, only used on INIT
-		SRAM_OE_N => SRAM_OE_N -- SRAM output enable, used everywhere else( reading) 
-		
+		SRAM_OE_N  => SRAM_OE_N, -- SRAM output enable, used everywhere else( reading)
+		SRAM_CE_N  => SRAM_CE_N,
+		SRAM_UB_N  => SRAM_UB_N, 
+		SRAM_LB_N  => SRAM_LB_N,
+		PWM_out    => GPIO(0) -- PWM out, connect to silly scope
 	
 	);
-SRAM_CE_N <= '0';  -- enable chip
-SRAM_UB_N <= '0';  -- enable upper byte
-SRAM_LB_N <= '0';  -- enable lower byte
+--SRAM_CE_N <= '0';  -- enable chip
+--SRAM_UB_N <= '0';  -- enable upper byte
+--SRAM_LB_N <= '0';  -- enable lower byte
 LCD_BLON <= '1'; -- turns lcd backlight on
 LCD_ON <= '1'; -- turns LCD on, should always be on
 LCD_RW <= '0';-- LCD always writes, never need to read from the LCD
-
+LCD_DATA <= LCD_DATA_O;
 END structural;
 
 

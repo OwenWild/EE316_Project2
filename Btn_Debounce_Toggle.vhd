@@ -1,8 +1,9 @@
+----------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.std_logic_unsigned.all;
 
-entity Btn_Debounce_Toggle is
+entity btn_debounce_toggle is
 GENERIC (
 	CONSTANT CNTR_MAX : std_logic_vector(15 downto 0) := X"FFFF");  
     Port ( BTN_I 	: in  STD_LOGIC;
@@ -10,9 +11,9 @@ GENERIC (
            BTN_O 	: out  STD_LOGIC;
            TOGGLE_O : out  STD_LOGIC;
 		   PULSE_O  : out STD_LOGIC);
-end Btn_Debounce_Toggle;
+end btn_debounce_toggle;
 
-architecture Behavioral of Btn_Debounce_Toggle is
+architecture Behavioral of btn_debounce_toggle is
 
 --constant CNTR_MAX : std_logic_vector(15 downto 0) := X"FFFF";
 signal btn_cntr   : std_logic_vector(15 downto 0) := (others => '0');
@@ -20,6 +21,7 @@ signal btn_reg    : std_logic   				  := '0';
 signal btn_toggle : std_logic                     := '1';
 signal btn_sync   : std_logic_vector(1 downto 0)  := (others => '0');
 signal btn_pulse  : std_logic                     := '0';
+
 
 begin
 
