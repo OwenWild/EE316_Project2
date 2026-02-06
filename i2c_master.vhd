@@ -1,263 +1,221 @@
---------------------------------------------------------------------------------
---
---   FileName:         i2c_master.vhd
---   Dependencies:     none
---   Design Software:  Quartus II 64-bit Version 13.1 Build 162 SJ Full Version
---
---   HDL CODE IS PROVIDED "AS IS."  DIGI-KEY EXPRESSLY DISCLAIMS ANY
---   WARRANTY OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT
---   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
---   PARTICULAR PURPOSE, OR NON-INFRINGEMENT. IN NO EVENT SHALL DIGI-KEY
---   BE LIABLE FOR ANY INCIDENTAL, SPECIAL, INDIRECT OR CONSEQUENTIAL
---   DAMAGES, LOST PROFITS OR LOST DATA, HARM TO YOUR EQUIPMENT, COST OF
---   PROCUREMENT OF SUBSTITUTE GOODS, TECHNOLOGY OR SERVICES, ANY CLAIMS
---   BY THIRD PARTIES (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF),
---   ANY CLAIMS FOR INDEMNITY OR CONTRIBUTION, OR OTHER SIMILAR COSTS.
---
---   Version History
---   Version 1.0 11/1/2012 Scott Larson
---     Initial Public Release
---   Version 2.0 06/20/2014 Scott Larson
---     Added ability to interface with different slaves in the same transaction
---     Corrected ack_error bug where ack_error went 'Z' instead of '1' on error
---     Corrected timing of when ack_error signal clears
---   Version 2.1 10/21/2014 Scott Larson
---     Replaced gated clock with clock enable
---     Adjusted timing of SCL during start and stop conditions
--- 
---------------------------------------------------------------------------------
+--I2C Master Code Credit: Alexander Paquette
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
-LIBRARY ieee;
-USE ieee.std_logic_1164.all;
-USE ieee.std_logic_unsigned.all;
+entity i2c is
+    generic(
+        iClk : integer := 100_000_000; -- Input clock
+        bClk : integer := 100_000      -- I2C bus clock
+    );
+    port(
+        clk     : in  std_logic;                      -- system clock
+        reset_n : in  std_logic;
+        en      : in  std_logic;
+        addr    : in  std_logic_vector(6 downto 0);   -- 7-bit slave address
+        rw      : in  std_logic;                      -- '0' = write, '1' = read
+        r_data  : in  std_logic_vector(7 downto 0);   -- data to write
+        busy    : out std_logic;
+        rd_data : out std_logic_vector(7 downto 0);   -- data read from slave
+        error   : buffer std_logic;
+        sda     : inout std_logic;                    -- serial data
+        scl     : inout std_logic                     -- serial clock
+    );
+end entity i2c;
 
-ENTITY i2c_master IS
-  GENERIC(
-    input_clk : INTEGER := 100_000_000; --input clock speed from user logic in Hz
-    bus_clk   : INTEGER := 400_000);   --speed the i2c bus (scl) will run at in Hz
-  PORT(
-    clk       : IN     STD_LOGIC;                    --system clock
-    reset_n   : IN     STD_LOGIC;                    --active low reset
-    ena       : IN     STD_LOGIC;                    --latch in command
-    addr      : IN     STD_LOGIC_VECTOR(6 DOWNTO 0); --address of target slave
-    rw        : IN     STD_LOGIC;                    --'0' is write, '1' is read
-    data_wr   : IN     STD_LOGIC_VECTOR(7 DOWNTO 0); --data to write to slave
-    busy      : OUT    STD_LOGIC;                    --indicates transaction in progress
-    data_rd   : OUT    STD_LOGIC_VECTOR(7 DOWNTO 0); --data read from slave
-    ack_error : BUFFER STD_LOGIC;                    --flag if improper acknowledge from slave
-    sda       : INOUT  STD_LOGIC;                    --serial data output of i2c bus
-    scl       : INOUT  STD_LOGIC);                   --serial clock output of i2c bus
-END i2c_master;
+architecture rtl of i2c is
 
-ARCHITECTURE logic OF i2c_master IS
-  CONSTANT divider  :  INTEGER := (input_clk/bus_clk)/4; --number of clocks in 1/4 cycle of scl
-  TYPE machine IS(ready, start, command, slv_ack1, wr, rd, slv_ack2, mstr_ack, stop); --needed states
-  SIGNAL state         : machine;                        --state machine
-  SIGNAL data_clk      : STD_LOGIC;                      --data clock for sda
-  SIGNAL data_clk_prev : STD_LOGIC;                      --data clock during previous system clock
-  SIGNAL data_clk_m    : STD_LOGIC;                      --data clock during previous system clock  
-  SIGNAL scl_clk       : STD_LOGIC;                      --constantly running internal scl
-  SIGNAL scl_ena       : STD_LOGIC := '0';               --enables internal scl to output
-  SIGNAL sda_int       : STD_LOGIC := '1';               --internal sda
-  SIGNAL sda_ena_n     : STD_LOGIC;                      --enables internal sda to output
-  SIGNAL addr_rw       : STD_LOGIC_VECTOR(7 DOWNTO 0);   --latched in address and read/write
-  SIGNAL data_tx       : STD_LOGIC_VECTOR(7 DOWNTO 0);   --latched in data to write to slave
-  SIGNAL data_rx       : STD_LOGIC_VECTOR(7 DOWNTO 0);   --data received from slave
-  SIGNAL bit_cnt       : INTEGER RANGE 0 TO 7 := 7;      --tracks bit number in transaction
-  SIGNAL stretch       : STD_LOGIC := '0';               --identifies if slave is stretching scl
-BEGIN
+    -- Types and internal signals
+    type state_type is (
+        ready,
+        start_cond,
+        send_addr,
+        addr_ack,
+        write_byte,
+        write_ack,
+        read_byte,
+        read_ack,
+        stop_cond
+    );
 
-  --generate the timing for the bus clock (scl_clk) and the data clock (data_clk)
-  PROCESS(clk, reset_n)
-    VARIABLE count  	:  INTEGER RANGE 0 TO divider*4;  --timing for clock generation
-            
-  BEGIN
-    IF(reset_n = '0') THEN                --reset asserted
-      stretch <= '0';
-      count := 0;
-    ELSIF(clk'EVENT AND clk = '1') THEN
-      data_clk_prev <= data_clk;          --store previous value of data clock
-      IF(count = 999) THEN        --end of timing cycle
-        count := 0;                       --reset timer
-      ELSIF(stretch = '0') THEN           --clock stretching from slave not detected
-        count := count + 1;               --continue clock generation timing
-      END IF;
-      CASE count IS
-        WHEN 0 TO 249  =>            --first 1/4 cycle of clocking
-          scl_clk <= '0';
-          data_clk <= '0';
-        WHEN 250 TO 499 =>    --second 1/4 cycle of clocking
-          scl_clk <= '0';
-          data_clk <= '1';
-        WHEN 500 TO 749 =>  --third 1/4 cycle of clocking
-          scl_clk <= '1';                 --release scl
-          IF(scl = '0') THEN              --detect if slave is stretching clock
-            stretch <= '1';
-          ELSE
-            stretch <= '0';
-          END IF;
-          data_clk <= '1';
-        WHEN OTHERS =>                    --last 1/4 cycle of clocking
-          scl_clk <= '1';
-          data_clk <= '0';
-      END CASE;
-    END IF;
-  END PROCESS;
+    signal state      : state_type := ready;
+    signal next_state : state_type;
 
-  --state machine and writing to sda during scl low (data_clk rising edge)
-  PROCESS(clk, reset_n)
-  BEGIN
-    IF(reset_n = '0') THEN                 --reset asserted
-      state <= ready;                      --return to initial state
-      busy <= '1';                         --indicate not available
-      scl_ena <= '0';                      --sets scl high impedance
-      sda_int <= '1';                      --sets sda high impedance
-      ack_error <= '0';                    --clear acknowledge error flag
-      bit_cnt <= 7;                        --restarts data bit counter
-      data_rd <= "00000000";               --clear data read port
-    ELSIF(clk'EVENT AND clk = '1') THEN
-      IF(data_clk = '1' AND data_clk_prev = '0') THEN  --data clock rising edge
-        CASE state IS
-          WHEN ready =>                      --idle state
-            IF(ena = '1') THEN               --transaction requested
-              busy <= '1';                   --flag busy
-              addr_rw <= addr & rw;          --collect requested slave address and command
-              data_tx <= data_wr;            --collect requested data to write
-              state <= start;                --go to start bit
-            ELSE                             --remain idle
-              busy <= '0';                   --unflag busy
-              state <= ready;                --remain idle
-            END IF;
-          WHEN start =>                      --start bit of transaction
-            busy <= '1';                     --resume busy if continuous mode
-            sda_int <= addr_rw(bit_cnt);     --set first address bit to bus
-            state <= command;                --go to command
-          WHEN command =>                    --address and command byte of transaction
-            IF(bit_cnt = 0) THEN             --command transmit finished
-              sda_int <= '1';                --release sda for slave acknowledge
-              bit_cnt <= 7;                  --reset bit counter for "byte" states
-              state <= slv_ack1;             --go to slave acknowledge (command)
-            ELSE                             --next clock cycle of command state
-              bit_cnt <= bit_cnt - 1;        --keep track of transaction bits
-              sda_int <= addr_rw(bit_cnt-1); --write address/command bit to bus
-              state <= command;              --continue with command
-            END IF;
-          WHEN slv_ack1 =>                   --slave acknowledge bit (command)
-            IF(addr_rw(0) = '0') THEN        --write command
-              sda_int <= data_tx(bit_cnt);   --write first bit of data
-              state <= wr;                   --go to write byte
-            ELSE                             --read command
-              sda_int <= '1';                --release sda from incoming data
-              state <= rd;                   --go to read byte
-            END IF;
-          WHEN wr =>                         --write byte of transaction
-            busy <= '1';                     --resume busy if continuous mode
-            IF(bit_cnt = 0) THEN             --write byte transmit finished
-              sda_int <= '1';                --release sda for slave acknowledge
-              bit_cnt <= 7;                  --reset bit counter for "byte" states
---    added the following line to make sure busy = 0 in the slv_ack2 state              
-              busy <= '0';                   --continue is accepted    (modified by CU)          
-              state <= slv_ack2;             --go to slave acknowledge (write)
-            ELSE                             --next clock cycle of write state
-              bit_cnt <= bit_cnt - 1;        --keep track of transaction bits
-              sda_int <= data_tx(bit_cnt-1); --write next bit to bus
-              state <= wr;                   --continue writing
-            END IF;
-          WHEN rd =>                         --read byte of transaction
-            busy <= '1';                     --resume busy if continuous mode
-            IF(bit_cnt = 0) THEN             --read byte receive finished
-              IF(ena = '1' AND addr_rw = addr & rw) THEN  --continuing with another read at same address
-                sda_int <= '0';              --acknowledge the byte has been received
-              ELSE                           --stopping or continuing with a write
-                sda_int <= '1';              --send a no-acknowledge (before stop or repeated start)
-              END IF;
-              bit_cnt <= 7;                  --reset bit counter for "byte" states
---    added the following line to make sure busy = 0 in the mstr_ack state              
-              busy <= '0';                   --continue is accepted    (modified by CU)              
-              data_rd <= data_rx;            --output received data
-              state <= mstr_ack;             --go to master acknowledge
-            ELSE                             --next clock cycle of read state
-              bit_cnt <= bit_cnt - 1;        --keep track of transaction bits
-              state <= rd;                   --continue reading
-            END IF;
-          WHEN slv_ack2 =>                   --slave acknowledge bit (write)
-            IF(ena = '1') THEN               --continue transaction
---            busy <= '0';                   --continue is accepted   (modified by CU)           
-              addr_rw <= addr & rw;          --collect requested slave address and command
-              data_tx <= data_wr;            --collect requested data to write
-              IF(addr_rw = addr & rw) THEN   --continue transaction with another write
-                busy <= '1';                 --resume busy in the wr state (modified by CU)             
-                sda_int <= data_wr(bit_cnt); --write first bit of data
-                state <= wr;                 --go to write byte
-              ELSE                           --continue transaction with a read or new slave
-                state <= start;              --go to repeated start
-              END IF;
-            ELSE                             --complete transaction
-            busy <= '0';                   --unflag busy  (modified by CU)
-            sda_int <= '1';                --sets sda high impedance (modified by CU)             
-            state <= stop;                 --go to stop bit
-            END IF;
-          WHEN mstr_ack =>                   --master acknowledge bit after a read
-            IF(ena = '1') THEN               --continue transaction
---            busy <= '0';                   --continue is accepted   (modified by CU)
-              addr_rw <= addr & rw;          --collect requested slave address and command
-              data_tx <= data_wr;            --collect requested data to write
-              IF(addr_rw = addr & rw) THEN   --continue transaction with another read
-                busy <= '1';                 --resume busy in the wr state (modified by CU)               
-                sda_int <= '1';              --release sda from incoming data
-                state <= rd;                 --go to read byte
-              ELSE                           --continue transaction with a write or new slave
-                state <= start;              --repeated start
-              END IF;    
-            ELSE                             --complete transaction
-              busy <= '0';                   --unflag busy  (modified by CU)
-              sda_int <= '1';                --sets sda high impedance (modified by CU)
-              state <= stop;                 --go to stop bit                             
-            END IF;
-          WHEN stop =>                       --stop bit of transaction
---              busy <= '0';                   --unflag busy  (modified by CU)           
-              state <= ready;                --go to idle state
-        END CASE;    
-      ELSIF(data_clk = '0' AND data_clk_prev = '1') THEN  --data clock falling edge
-        CASE state IS
-          WHEN start =>                  
-            IF(scl_ena = '0') THEN                  --starting new transaction
-              scl_ena <= '1';                       --enable scl output
-              ack_error <= '0';                     --reset acknowledge error output
-            END IF;
-          WHEN slv_ack1 =>                          --receiving slave acknowledge (command)
-            IF(sda /= '0' OR ack_error = '1') THEN  --no-acknowledge or previous no-acknowledge
-              ack_error <= '1';                     --set error output if no-acknowledge
-            END IF;
-          WHEN rd =>                                --receiving slave data
-            data_rx(bit_cnt) <= sda;                --receive current slave data bit
-          WHEN slv_ack2 =>                          --receiving slave acknowledge (write)
-            IF(sda /= '0' OR ack_error = '1') THEN  --no-acknowledge or previous no-acknowledge
-              ack_error <= '1';                     --set error output if no-acknowledge
-            END IF;
-          WHEN stop =>
-            scl_ena <= '0';                         --disable scl
-          WHEN OTHERS =>
-            NULL;
-        END CASE;
-      END IF;
-    END IF; 
-  END PROCESS;  
+    signal scl_int    : std_logic := '1';
+    signal sda_int    : std_logic := '1';  -- internal drive value (0 = pull low, 1 = release)
+    signal sda_oe     : std_logic := '0';  -- output enable for SDA (1 = drive, 0 = Z)
 
+    signal bit_cnt    : integer range 0 to 7 := 7;
 
-  --set sda output
-  data_clk_m <= data_clk_prev and data_clk;         -- Modification added at CU
-  WITH state SELECT
-    sda_ena_n <= data_clk WHEN start,       --generate start condition
-                 NOT data_clk_m WHEN stop,  --generate stop condition (modification added at CU)
-                 sda_int WHEN OTHERS;       --set to internal sda signal     
-      
-  --set scl and sda outputs
-  scl <= '0' WHEN (scl_ena = '1' AND scl_clk = '0') ELSE 'Z';
-  sda <= '0' WHEN sda_ena_n = '0' ELSE 'Z';
-  
--- Following two signals will be used for tristate obuft (did not work)
---  scl <= '1' WHEN (scl_ena = '1' AND scl_clk = '0') ELSE '0';
---  sda <= '1' WHEN sda_ena_n = '0' ELSE '0';
-  
-END logic;
+    signal addr_rw    : std_logic_vector(7 downto 0) := (others => '0');
+    signal data_tx    : std_logic_vector(7 downto 0) := (others => '0');
+    signal data_rx    : std_logic_vector(7 downto 0) := (others => '0');
+
+    signal busy_int   : std_logic := '0';
+
+    -- Simple clock divider for SCL (very basic, adjust as needed)
+    constant DIV : integer := iClk / (bClk * 2);  -- toggle SCL at bClk
+    signal div_cnt : integer range 0 to DIV := 0;
+    signal scl_en  : std_logic := '0';            -- tick for FSM steps
+
+begin
+    
+    -- I/O assignments
+    busy    <= busy_int;
+    rd_data <= data_rx;
+
+    -- Open-drain style SDA: drive low or release (Z)
+    sda <= '0' when (sda_oe = '1' and sda_int = '0') else 'Z';
+
+    -- For simplicity, drive SCL as push-pull here (you can adapt to open-drain)
+    scl <= scl_int;
+
+    
+    -- Clock divider to generate SCL and scl_en
+    clk_divider : process(clk, reset_n)
+    begin
+        if reset_n = '0' then
+            div_cnt <= 0;
+            scl_int <= '1';
+            scl_en  <= '0';
+        elsif rising_edge(clk) then
+            if div_cnt = DIV then
+                div_cnt <= 0;
+                scl_int <= not scl_int;
+                scl_en  <= '1';
+            else
+                div_cnt <= div_cnt + 1;
+                scl_en  <= '0';
+            end if;
+        end if;
+    end process;
+
+    
+    -- I2C State Machine --
+    fsm : process(clk, reset_n)
+    begin
+        if reset_n = '0' then
+            state    <= ready;
+            busy_int <= '0';
+            sda_int  <= '1';
+            sda_oe   <= '0';
+            bit_cnt  <= 7;
+            addr_rw  <= (others => '0');
+            data_tx  <= (others => '0');
+            data_rx  <= (others => '0');
+            error    <= '0';
+        elsif rising_edge(clk) then
+            if scl_en = '1' then  -- advance FSM only on SCL edges
+                case state is
+
+                    -- IDLE / READY
+						  
+                    when ready =>
+                        busy_int <= '0';
+                        sda_int  <= '1';
+                        sda_oe   <= '0';
+                        bit_cnt  <= 7;
+                        error    <= '0';
+
+                        if en = '1' then
+                            busy_int <= '1';
+                            addr_rw  <= addr & rw;   -- 7-bit addr + R/W
+                            data_tx  <= r_data;      -- latch write data
+                            state    <= start_cond;
+                        else
+                            state <= ready;
+                        end if;
+
+                    -- START condition: SDA goes low while SCL high
+
+                    when start_cond =>
+                        sda_oe  <= '1';
+                        sda_int <= '0';  -- pull SDA low
+                        bit_cnt <= 7;
+                        state   <= send_addr;
+
+                    -- Send address + R/W bit (MSB first)
+                    
+                    when send_addr =>
+                        sda_oe  <= '1';
+                        sda_int <= addr_rw(bit_cnt);
+
+                        if bit_cnt = 0 then
+                            bit_cnt <= 7;
+                            state   <= addr_ack;
+                        else
+                            bit_cnt <= bit_cnt - 1;
+                        end if;
+
+                    -- Slave ACK for address
+
+                    when addr_ack =>
+                        sda_oe <= '0';  -- release SDA, sample ACK
+                        -- In real hardware, sample SDA here (on SCL high)
+                        -- For now, we don't check it and assume ACK
+                        if rw = '0' then
+                            -- WRITE operation
+                            state <= write_byte;
+                        else
+                            -- READ operation
+                            state <= read_byte;
+                        end if;
+
+                    -- WRITE: send data byte
+                    when write_byte =>
+                        sda_oe  <= '1';
+                        sda_int <= data_tx(bit_cnt);
+
+                        if bit_cnt = 0 then
+                            bit_cnt <= 7;
+                            state   <= write_ack;
+                        else
+                            bit_cnt <= bit_cnt - 1;
+                        end if;
+
+                    -- Slave ACK for data byte
+                    when write_ack =>
+                        sda_oe <= '0';  -- release SDA, sample ACK
+                        -- Again, not checking ACK here
+                        state <= stop_cond;
+
+                    -- READ: receive data byte
+                    when read_byte =>
+                        sda_oe <= '0';  -- release SDA, slave drives
+                        -- Sample SDA into data_rx(bit_cnt)
+                        data_rx(bit_cnt) <= sda;
+
+                        if bit_cnt = 0 then
+                            bit_cnt <= 7;
+                            state   <= read_ack;
+                        else
+                            bit_cnt <= bit_cnt - 1;
+                        end if;
+
+                   
+                    -- Master ACK/NACK after read
+                    when read_ack =>
+                        sda_oe  <= '1';
+                        sda_int <= '1';  -- NACK for single-byte read
+                        state   <= stop_cond;
+
+                    -- STOP condition: SDA goes high while SCL high
+                    
+                    when stop_cond =>
+                        sda_oe  <= '1';
+                        sda_int <= '0';  -- ensure low first
+                        -- next tick, release SDA to generate STOP
+                        sda_int  <= '1';
+                        sda_oe   <= '0';
+                        busy_int <= '0';
+                        state    <= ready;
+
+                    when others =>
+                        state <= ready;
+
+                end case;
+            end if;
+        end if;
+    end process;
+
+end architecture rtl;
