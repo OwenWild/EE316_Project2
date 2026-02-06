@@ -53,11 +53,11 @@ ENTITY DE2_115 IS
       FL_FY       : IN STD_LOGIC;							-- FLASH Output Enable
       FL_WP_N     : OUT STD_LOGIC;							-- FLASH Chip Enable	  	  
 -- 			SRAM Interface		      
-      SRAM_DQ     : INOUT STD_LOGIC_VECTOR(15 DOWNTO 0);	-- SRAM Data bus 16 Bits
+      SRAM_DQ     : INOUT STD_LOGIC_VECTOR(15 DOWNTO 0);	   -- SRAM Data bus 16 Bits
       SRAM_ADDR   : OUT STD_LOGIC_VECTOR(19 DOWNTO 0);		-- SRAM Address bus 18 Bits
-      SRAM_UB_N   : OUT STD_LOGIC;							-- SRAM High-byte Data Mask
-      SRAM_LB_N   : OUT STD_LOGIC;							-- SRAM Low-byte Data Mask
-      SRAM_WE_N   : OUT STD_LOGIC;							-- SRAM Write Enable
+      SRAM_UB_N   : OUT STD_LOGIC;							      -- SRAM High-byte Data Mask
+      SRAM_LB_N   : OUT STD_LOGIC;							      -- SRAM Low-byte Data Mask
+      SRAM_WE_N   : OUT STD_LOGIC;							      -- SRAM Write Enable
       SRAM_CE_N   : OUT STD_LOGIC;							-- SRAM Chip Enable
       SRAM_OE_N   : OUT STD_LOGIC;							-- SRAM Output Enable
 -- 			ISP1362 Interface	      

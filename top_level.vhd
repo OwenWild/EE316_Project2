@@ -37,6 +37,11 @@ signal mode : std_logic_vector(2 downto 0) := "000"; -- inital mode is INIT (000
 signal Reset_Master : std_LOGIC;
 signal ResetDelay  : std_LOGIC;
 
+signal KEY0_in        : std_logic; --button reset
+signal KEY1_in        : std_logic;
+signal KEY2_in        : std_logic;
+signal KEY3_in        : std_logic; 
+
 signal KEY0_deb       : std_logic; --button reset
 signal KEY1_deb       : std_logic;
 signal KEY2_deb       : std_logic;
@@ -51,7 +56,15 @@ signal PWM_out_120Hz  : std_logic;
 signal PWM_out_1000Hz : std_logic;
 
 signal Cnt            : std_logic_vector(7 downto 0);
-signal Cnt_En         : std_logic;
+signal Count_En       : std_logic;
+
+signal cnt_en			 : std_logic;
+signal clk_cnt			 : integer range 0 to 49999999;
+signal clk_en			 : std_logic;
+signal clk_cnt_12ns	 : integer range 0 to 49999;
+signal clk_en_12ns	 : std_logic;
+
+signal pulse_out      :std_logic;
 
 signal SRAM_Data      : std_logic_vector(15 downto 0);
 signal ROM_Data       : std_logic_vector(15 downto 0);
@@ -115,11 +128,11 @@ COMPONENT Statemachine is
 		KEY1       : in std_logic; -- key 1
 		KEY2       : in std_logic; -- key 2
 		KEY3       : in std_logic; -- key 3
-		count      : out std_logic;
-		pulse_out  : out std_logic;
-		PWM_1      : out std_logic;
-		PWM_2      : out std_logic;
-		PWM_3      : out std_logic;
+--		count      : out std_logic;
+--		pulse_out  : out std_logic;
+--		PWM_1      : out std_logic;
+--		PWM_2      : out std_logic;
+--		PWM_3      : out std_logic;
 		mode       : out std_logic_vector(2 downto 0) -- 000 init, 001 test, 010 - pause, 111 - pwm freq 60,, 100 pwm freq 120, 101 pwm freq 1000hz
 	); -- this is  what drives mode, and 
 	
@@ -178,7 +191,11 @@ end component;
 
 begin 
 
-Reset_Master <= ResetDelay or not Key0_deb;
+Reset_Master <= ResetDelay or Key0_deb;
+KEY0_in      <= not KEY0;
+KEY1_in      <= not KEY1;
+KEY2_in      <= not KEY2;
+KEY3_in      <= not KEY3;
 --- INSTANTIATIONS GO HERE
 -- INSTANTIATE i2C master, figure out where all ports connect, going to need logic
 INST_PWM_60Hz : PWM_TL 
@@ -189,7 +206,7 @@ INST_PWM_60Hz : PWM_TL
 		Reset  	    => Reset_Master, 
 		iClk_en	    => '0',
 		iData        => SRAM_Data(7 downto 0),
-		Scream_Pain  => open,
+		Scream_Pain  => Count_En,
 		oPWM         => PWM_out_60Hz
 	);
 	
@@ -209,7 +226,7 @@ INST_LCD_CONTROLLER : LCD_Controller
 	);
 INST_BTN_DEBOUNCE_Key0  : Btn_Debounce_Toggle
 	PORT MAP(
-		BTN_I    => not KEY0,
+		BTN_I    => KEY0_in,
 		CLK      => clk_in,
 		BTN_O    => open,
 		TOGGLE_O => open,
@@ -218,7 +235,7 @@ INST_BTN_DEBOUNCE_Key0  : Btn_Debounce_Toggle
 	); 
 INST_BTN_DEBOUNCE_Key1  : Btn_Debounce_Toggle
 	PORT MAP(
-		BTN_I    => not KEY1,
+		BTN_I    => KEY1_in,
 		CLK      => clk_in,
 		BTN_O    => open,
 		TOGGLE_O => open,
@@ -227,20 +244,20 @@ INST_BTN_DEBOUNCE_Key1  : Btn_Debounce_Toggle
 	); 
 INST_BTN_DEBOUNCE_Key2  : Btn_Debounce_Toggle
 	PORT MAP(
-		BTN_I => not KEY2,
-		CLK => clk_in,
-		BTN_O => open,
+		BTN_I    => KEY2_in,
+		CLK      => clk_in,
+		BTN_O    => open,
 		TOGGLE_O => open,
-		PULSE_O => KEY2_deb
+		PULSE_O  => KEY2_deb
 
 	); 
 INST_BTN_DEBOUNCE_Key3  : Btn_Debounce_Toggle
 	PORT MAP(
-		BTN_I => not KEY3,
-		CLK => clk_in,
-		BTN_O => open,
+		BTN_I    => KEY3_in,
+		CLK      => clk_in,
+		BTN_O    => open,
 		TOGGLE_O => open,
-		PULSE_O => KEY3_deb
+		PULSE_O  => KEY3_deb
 
 	); 
 	
@@ -252,11 +269,11 @@ INST_Statemachine : Statemachine
 		KEY1      => KEY1_deb, 
 		KEY2      => KEY2_deb,
 		KEY3      => KEY3_deb,
-		count     => Cnt_En,
-		pulse_out => pulse,
-		PWM_1     => PWM1,
-		PWM_2     => PWM2,
-		PWM_3     => PWM3,
+--		count     => Cnt_En,
+--		pulse_out => pulse,
+--		PWM_1     => PWM1,
+--		PWM_2     => PWM2,
+--		PWM_3     => PWM3,
 		mode      => mode
 	);
 	
@@ -267,7 +284,7 @@ inst_ROMaddressor : univ_bin_counter
 			reset				         => Reset_Master,
 			syn_clr                 => Reset_Master, 
 			load                    => '0', 
-			en                      => Cnt_En, 
+			en                      => Count_En, 
 			up	                     => '1',
 			clk_en 					   => open,			
 			d						      =>(others => '0'),
@@ -304,15 +321,49 @@ INST_SRAM : S_RAM_Contrl
 
 -----
 
+-- clock enable 1 SEC
+
+	process(clk_in)
+	begin
+		if rising_edge(clk_in) then
+			if (clk_cnt = 49) then --For sim - 49, for use 49999999
+				clk_cnt <= 0;
+				clk_en <= '1';
+			else 
+				clk_cnt <= clk_cnt + 1;
+				clk_en <= '0';
+			end if;
+		end if;
+	
+	end process;
+	
+	-- Clock enable 12 ns
+	process(clk_in)
+	begin
+		if rising_edge(clk_in) then
+			if (clk_cnt_12ns = 4) then --For sim - 4, for use 49999
+				clk_cnt_12ns <= 0;
+				clk_en_12ns <= '1';
+			else 
+				clk_cnt_12ns <= clk_cnt_12ns + 1;
+				clk_en_12ns <= '0';
+			end if;
+		end if;
+	
+	end process;
+	
+	pulse_out <= clk_en or clk_en_12ns;
 
 process(clk_in)
 begin
-	if PWM1 = '1' then	
+	if mode = "100" then	
 		PWM_out <= PWM_out_60Hz;
-	elsif PWM2 = '1' then
+	elsif mode = "101" then
 		PWM_out <= PWM_out_120Hz;
-	elsif PWM3 = '1' then
+	elsif mode = "110" then
 		PWM_out <= PWM_out_1000Hz;
+	else
+		PWM_out <= '0';
 	end if;
 end process;	
 
