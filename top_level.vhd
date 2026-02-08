@@ -20,7 +20,9 @@ ENTITY top_level is
 		SRAM_OE_N : out std_logic; -- SRAM output enable, used everywhere else( reading)
 		SRAM_CE_N : out std_logic;
 		SRAM_UB_N : out std_logic;
-		SRAM_LB_N : out std_logic;	
+		SRAM_LB_N : out std_logic;
+		HEX0      : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+		HEX1      : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);	
 		PWM_out : out std_logic
 	
 	);
@@ -57,6 +59,9 @@ signal PWM_out_1000Hz : std_logic;
 
 signal Cnt            : std_logic_vector(7 downto 0);
 signal Count_En       : std_logic;
+signal Count_En0      : std_logic;
+signal Count_En2      : std_logic;
+signal Count_En3      : std_logic;
 
 signal cnt_en			 : std_logic;
 signal clk_cnt			 : integer range 0 to 49999999;
@@ -128,11 +133,8 @@ COMPONENT Statemachine is
 		KEY1       : in std_logic; -- key 1
 		KEY2       : in std_logic; -- key 2
 		KEY3       : in std_logic; -- key 3
---		count      : out std_logic;
---		pulse_out  : out std_logic;
---		PWM_1      : out std_logic;
---		PWM_2      : out std_logic;
---		PWM_3      : out std_logic;
+		HEX0       : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+		HEX1       : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
 		mode       : out std_logic_vector(2 downto 0) -- 000 init, 001 test, 010 - pause, 111 - pwm freq 60,, 100 pwm freq 120, 101 pwm freq 1000hz
 	); -- this is  what drives mode, and 
 	
@@ -206,8 +208,32 @@ INST_PWM_60Hz : PWM_TL
 		Reset  	    => Reset_Master, 
 		iClk_en	    => '0',
 		iData        => SRAM_Data(7 downto 0),
-		Scream_Pain  => Count_En,
+		Scream_Pain  => Count_En0,
 		oPWM         => PWM_out_60Hz
+	);
+	
+INST_PWM_120Hz : PWM_TL 
+
+   generic map(DataS => 8, Cnt2 => 255, en_time => 49999999)
+	port map(
+		iClk		    => clk_in,
+		Reset  	    => Reset_Master, 
+		iClk_en	    => '1',
+		iData        => SRAM_Data(7 downto 0),
+		Scream_Pain  => Count_En2,
+		oPWM         => PWM_out_120Hz
+	);
+	
+INST_PWM_1KHz : PWM_TL 
+
+   generic map(DataS => 6, Cnt2 => 63, en_time => 49999999)
+	port map(
+		iClk		    => clk_in,
+		Reset  	    => Reset_Master, 
+		iClk_en	    => '1',
+		iData        => SRAM_Data(5 downto 0),
+		Scream_Pain  => Count_En3,
+		oPWM         => PWM_out_1000Hz
 	);
 	
 INST_Reset_Delay : Reset_Delay
@@ -269,11 +295,8 @@ INST_Statemachine : Statemachine
 		KEY1      => KEY1_deb, 
 		KEY2      => KEY2_deb,
 		KEY3      => KEY3_deb,
---		count     => Cnt_En,
---		pulse_out => pulse,
---		PWM_1     => PWM1,
---		PWM_2     => PWM2,
---		PWM_3     => PWM3,
+		HEX0      => HEX0,
+		HEX1      => HEX1,
 		mode      => mode
 	);
 	
@@ -305,7 +328,7 @@ INST_SRAM : S_RAM_Contrl
 		iCLK           => clk_in,
 		iReset         => Reset_Master,
 		iEnable			=> '0', -- R_W
-		pulse_in       => pulse,
+		pulse_in       => pulse_out,
 		iAddress			=> Cnt,
 		iSData         => ROM_Data,
 		oSData         => SRAM_Data,
@@ -357,11 +380,14 @@ INST_SRAM : S_RAM_Contrl
 process(clk_in)
 begin
 	if mode = "100" then	
-		PWM_out <= PWM_out_60Hz;
+		PWM_out  <= PWM_out_60Hz;
+		Count_En <= Count_En0;
 	elsif mode = "101" then
-		PWM_out <= PWM_out_120Hz;
+		PWM_out  <= PWM_out_120Hz;
+		Count_En <= Count_En2;
 	elsif mode = "110" then
-		PWM_out <= PWM_out_1000Hz;
+		PWM_out  <= PWM_out_1000Hz;
+		Count_En <= Count_En3;
 	else
 		PWM_out <= '0';
 	end if;

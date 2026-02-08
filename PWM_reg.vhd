@@ -6,7 +6,7 @@ USE ieee.std_logic_unsigned.all;
 USE ieee.Numeric_std.all;
 	
 entity PWM_reg is
-	generic(N: integer := 8); 
+	generic(N: integer := 6); 
 	port(
 		iClk					: in std_logic; 
 		X                 : in std_logic_vector(N-1 downto 0);
@@ -17,7 +17,7 @@ end PWM_reg;
 
 architecture Structural of PWM_reg is
 
-	signal R   : std_logic_vector(7 downto 0):= (others => '0');
+	signal R   : std_logic_vector(N-1 downto 0):= (others => '0');
 	
 begin
 	

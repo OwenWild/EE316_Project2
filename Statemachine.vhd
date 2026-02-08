@@ -13,11 +13,8 @@ ENTITY Statemachine is
 		KEY1       : in std_logic; -- key 1
 		KEY2       : in std_logic; -- key 2
 		KEY3       : in std_logic; -- key 3
---		count      : out std_logic;
---		pulse_out  : out std_logic;
---		PWM_1      : out std_logic;
---		PWM_2      : out std_logic;
---		PWM_3      : out std_logic;
+		HEX0       : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+		HEX1       : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
  		mode       : out std_logic_vector(2 downto 0) -- 000 init, 001 test, 010 - pause, 111 - pwm freq 60,, 100 pwm freq 120, 101 pwm freq 1000hz
 	);
 	
@@ -62,6 +59,8 @@ begin
 				end if;
 			
 			when TEST =>
+				HEX0 <= "1000000";
+				HEX1 <= "0010000";
 				mode <= "001"; -- this mode is read by LCD controller to do stuff
 				if(KEY1 = '1') then  -- key1 is active high, if its pressed, 
 					TLS <= PAUSE;  -- goes into pause mode
@@ -73,7 +72,9 @@ begin
 					TLS <= TEST;
 				end if;
 				
-			when PAUSE => 
+			when PAUSE =>
+				HEX0 <= "1000000";
+				HEX1 <= "1000000";
 				mode <= "010";
 				if(KEY1 = '1') then 
 					TLS <= TEST; 
@@ -85,6 +86,8 @@ begin
 				
 				
 			when PWM1 =>
+				HEX0 <= "0010000";
+				HEX1 <= "1111001";
 				mode  <= "100";	
 				if(KEY3 = '1') then 
 					TLS   <= PWM2;
@@ -95,7 +98,9 @@ begin
 				else 
 					TLS <= PWM1;
 				end if;
-			when PWM2 =>  
+			when PWM2 =>
+				HEX0 <= "0010000";
+				HEX1 <= "0100100";		
 				mode <= "101";
 				if(KEY3 = '1') then 
 					TLS   <= PWM3;
@@ -107,6 +112,8 @@ begin
 					TLS <= PWM2;
 				end if;
 			when PWM3 =>
+				HEX0 <= "0010000";
+				HEX1 <= "0110000";
 				mode  <= "110";
 				if(KEY3 = '1') then 
 					TLS   <= PWM1;

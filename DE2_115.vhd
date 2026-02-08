@@ -138,18 +138,20 @@ PORT (
 		KEY0 : in std_logic; -- key0
 		KEY1 : in std_logic; -- key1
 		KEY2 : in std_logic; -- key2
-		KEY3 : in std_logic; -- key 3
-		LCD_Data : out std_logic_vector(7 downto 0); -- lcd data out, sent from top level state machine? 
-		LCD_EN : out std_logic; -- lcd data is writing or not (enable writing) 
-		LCD_RS : out std_logic; -- lcd either command ('1') or data ('0')
-		SRAM_DQ : inout std_logic_vector(15 downto 0); -- SRAM data in/out bus
-		SRAM_addr : out std_logic_vector(19 downto 0); -- SRAM addy
+		KEY3       : in std_logic; -- key 3
+		LCD_Data   : out std_logic_vector(7 downto 0); -- lcd data out, sent from top level state machine? 
+		LCD_EN     : out std_logic; -- lcd data is writing or not (enable writing) 
+		LCD_RS     : out std_logic; -- lcd either command ('1') or data ('0')
+		SRAM_DQ    : inout std_logic_vector(15 downto 0); -- SRAM data in/out bus
+		SRAM_addr  : out std_logic_vector(19 downto 0); -- SRAM addy
 		SRAM_WR_EN : out std_logic; --  sram write enable, only used on INIT
-		SRAM_OE_N : out std_logic; -- SRAM output enable, used everywhere else( reading) 
-		SRAM_CE_N : out std_logic;
-		SRAM_UB_N : out std_logic;
-		SRAM_LB_N : out std_logic;
-		PWM_out : out std_logic
+		SRAM_OE_N  : out std_logic; -- SRAM output enable, used everywhere else( reading) 
+		SRAM_CE_N  : out std_logic;
+		SRAM_UB_N  : out std_logic;
+		SRAM_LB_N  : out std_logic;
+		HEX0       : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+		HEX1       : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+		PWM_out    : out std_logic
 		
 	);
 end component;
@@ -174,6 +176,8 @@ PORT MAP(
 		SRAM_CE_N  => SRAM_CE_N,
 		SRAM_UB_N  => SRAM_UB_N, 
 		SRAM_LB_N  => SRAM_LB_N,
+		HEX0       => HEX0,
+		HEX1       => HEX1,
 		PWM_out    => GPIO(0) -- PWM out, connect to silly scope
 	
 	);
